@@ -20,7 +20,7 @@ Therefore, I suggest all of the following:
 
 3. Look for unwanted network services on your system.  Run `sudo ss -utlp`
    (or `sudo netstat -nutlp`).  You can ignore services listening on
-   localhost / [::1] / 127.0.0.1.
+   `localhost` / `127.0.0.1` / `[::1]`.
 
 Note: Ubuntu's "No Open Ports" policy is no longer actively maintained.
 There is no documentation about the exception for cups-browsed (UDP port 631).
@@ -40,11 +40,12 @@ Operating system based on Debian/Ubuntu.
 
 ## Role variables
 
-Each variable can be set to one of three possible values.
+There is one variable for each service.
+Each variable can take one of three possible values:
 
-* `True` - `yes` in YAML - will *disable* the corresponding service.
-* `False` - `no` in YAML - will *enable* the corresponding service.
-* `None` - defining the variable as empty in Yaml - will leave the corresponding service unchanged.
+* `True` - `yes` in YAML - will *disable* a service.
+* `False` - `no` in YAML - will *enable* a service.
+* `None` - defining the variable as empty in YAML - will leave a service unchanged.
 
 The variables, and their default values, are:
 
