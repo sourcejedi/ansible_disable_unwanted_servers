@@ -70,8 +70,8 @@ https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=939119
 
 minissdpd - used by libminiupnpc.  Debian Desktop 8 and 9 install this by
 default, due to transmission-gtk.  As far as I can tell, this is not removed
-during upgrade to Debian 10.  I consider this a very high risk as it runs as
-root, without dropping capabilities or using a chroot jail.  Clearly, it was
+during upgrade to Debian 10.  I consider this a high risk as it runs as root,
+without dropping capabilities or using a chroot jail.  It seems clear it was
 not audited and secured like Avahi was.
 
 https://unix.stackexchange.com/questions/442791/is-minissdpd-known-to-have-been-auditted-for-security-at-a-similar-level-to-avahi
@@ -103,7 +103,7 @@ convenient (or even possible).
 
     disable_service_cups_browsed:
 
-cups-browsed: network printer discovery for CUPS.
+cups-browsed - network printer discovery for CUPS.
 It has four independently switchable functions:
 
 1. Query printers using modern MDNS, aka "Avahi" aka "Bonjour" aka
