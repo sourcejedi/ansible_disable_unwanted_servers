@@ -53,7 +53,7 @@ The variables, and their default values, are:
 A lot of distributions (and users) allow Avahi (multicast DNS).
 Ubuntu audited it for security at one point.  That said, if you have
 a server that is directly exposed to the internet, you should disable
-Avahi or have a firewall that blocks it.  Ubuntu Server does not install
+Avahi or use a firewall to block it.  Ubuntu Server does not install
 Avahi.
 
     disable_service_gdomap: yes
