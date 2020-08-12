@@ -149,8 +149,8 @@
 #
 # Ansible 2.5 does not disable masked services correctly.
 # (`systemctl disable` does).
-# This hack makes a reasonable assumption that enabling foo.service
-# adds it as a dependency of multi-user.target.
+# This hack assumes that enabling foo.service adds it as a dependency
+# of multi-user.target (and does nothing else).
 #
 # (Disabling services does *not* make the mask redundant.  The mask
 # stops the service being enabled when it is installed, in case

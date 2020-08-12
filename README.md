@@ -3,88 +3,92 @@
 This role prevents network services being enabled
 by accident, when you install certain packages.
 
+
 ## Motivation
 
-A lot of users probably expect Ubuntu's
-"[No Open Ports][no-open-ports]", and/or a firewall like Windows has.
+I think a lot of users expect Ubuntu's
+"[No Open Ports][no-open-ports]" policy, and/or a firewall like Windows has.
 This expectation has not been upheld.  See the list of services below.
-Therefore, I suggest all of the following:
+Therefore, I suggest ALL of the following:
 
 1. Use this role, or run
-   `systemctl mask rpcbind minidlna minissdpd gdomap`.  It will prevent these
-   network services from being started, e.g. when you install certain packages
-   that recommend them.
+   `systemctl mask minidlna minissdpd rpcbind nmbd gdomap`.
+   It will prevent these network services from being started, e.g. when
+   you install certain packages that recommend them.
 
-2. Configure a firewall.  For an example (and some aspects to consider), see
+2. Audit your configuration of `cups-browsed` (automatic printer discovery).
+   By default, this role does not disable `cups-browsed`.  If possible,
+   I would remove the legacy `CUPS` listening protocol from
+   `BrowseRemoteProtocols` in `/etc/cups/cupsd.conf`.  I use the role
+   [sourcejedi.cups][sourcejedi__cups] to do this.
+
+[sourcejedi__cups]: https://github.com/sourcejedi/ansible-cups
+
+3. If possible, configure a firewall.
+   For an example, and some aspects to consider, see the role
    [sourcejedi.firewalld][sourcejedi__firewalld].
 
-3. Look for unwanted network services on your system.  Run `sudo ss -utlp`
-   (or `sudo netstat -nutlp`).  You can ignore services listening on
-   `localhost` / `127.0.0.1` / `[::1]`.
+4. Look for unwanted network services on your system.
+
+   Run `sudo ss -tlp` (or `sudo netstat -ntlp`).
+   You can ignore services listening on `localhost` / `127.0.0.1` / `[::1]`.
+
+   Remember to look at UDP network services as well as TCP.
+   `sudo ss -ulp` will show UDP network servers.
+   Unfortuately it will also show many network *clients*.
+   Don't be surprised if it lists your web browser, etc.
+
+   If your system has libvirtd installed, you will see `dnsmasq`
+   listening on 192.168.122.1 and 0.0.0.0%virbr0.
+   This is not exposed to the network.
 
 Note: Ubuntu's "No Open Ports" policy is no longer actively maintained.
 There is no documentation about the exception for cups-browsed (UDP port 631).
 And the policy has not been applied to the
-[current media player app][rhythmbox-bug].
+[current music playing app][rhythmbox-bug].
 
-This role does not disable open ports in the media player, or other
-GUI apps.
+This role does not disable open ports in the music player, or other apps
+you might start from the graphical interface.
 
 [no-open-ports]: https://wiki.ubuntu.com/SecurityTeam/Policies
 [sourcejedi__firewalld]: https://github.com/sourcejedi/ansible-firewalld
 [rhythmbox-bug]: https://bugs.launchpad.net/ubuntu/+source/rhythmbox/+bug/1771196
 
+
 ## Requirements
 
 Operating system based on Debian/Ubuntu.
+
 
 ## Role variables
 
 There is one variable for each service.
 Each variable can take one of three possible values:
 
-* `True` - `yes` in YAML - will *disable* a service.
-* `False` - `no` in YAML - will *enable* a service.
-* `None` - defining the variable as empty in YAML - will leave a service unchanged.
+* `True` - or `yes` in YAML - will *disable* a service.
+* `False` - or `no` in YAML - will *enable* a service.
+* `None` - or defining the variable as empty in YAML - will leave a service unchanged.
 
 The variables, and their default values, are:
 
-    disable_service_avahi_daemon:
+    disable_service_minidlna: yes
 
-A lot of distributions (and users) allow Avahi (multicast DNS).
-Ubuntu audited it for security at one point.  That said, if you have
-a server that is directly exposed to the internet, you should disable
-Avahi or use a firewall to block it.  Ubuntu Server does not install
-Avahi.
-
-    disable_service_gdomap: yes
-
-gdomap - part of gnustep-base-runtime. Pulled in e.g. by unar, and by
-Debian Desktop 7.  The service was disabled a long time ago, but there
-was a bug when upgrading to Debian 10.0.  There is expected to be an
-update in future, to forcibly disable it again, and fix the UDP
-amplification bug which could be used for DRDoS attacks.
-
-https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=939119
+minidlna - pulled in by kipi-plugins, e.g. by digikam :-(.
 
     disable_service_minissdpd: yes
 
-minissdpd - used by libminiupnpc.  Debian Desktop 8 and 9 install this by
+minissdpd - used by libminiupnpc.  Debian Desktop 8 and 9 installed this by
 default, due to transmission-gtk.  As far as I can tell, this is not removed
 during upgrade to Debian 10.  I consider this a high risk as it runs as root,
-without dropping capabilities or using a chroot jail.  It seems clear it was
-not audited and secured like Avahi was.
+without dropping capabilities or using a chroot jail.  It seems clear it has
+not been audited and secured like Avahi.
 
 https://unix.stackexchange.com/questions/442791/is-minissdpd-known-to-have-been-auditted-for-security-at-a-similar-level-to-avahi
-
-    disable_service_minidlna: yes
-
-minidlna - pulled in by kipi-plugins, e.g. by digikam.
 
     disable_service_rpcbind: yes
 
 rpcbind was installed by default in Debian 8, for NFSv3 clients.
-It is also pulled in by monitoring-plugins-standard (icinga).
+It is also pulled in by monitoring-plugins-standard (icinga2).
 
     disable_service_nmbd: yes
 
@@ -101,6 +105,16 @@ clients which support newer discovery protocols.  To be fair, Windows
 does not implement the same multicast DNS protocol used by Avahi.
 Using an alternative network discovery protocol is not always
 convenient (or even possible).
+
+    disable_service_gdomap: yes
+
+gdomap - part of gnustep-base-runtime. Pulled in e.g. by unar, and by
+Debian Desktop 7.  The service was disabled a long time ago, except there
+was a bug when upgrading to Debian 10.0.  In the Debian 10.2 update, it
+was forcibly disabled, and fixed to remove a UDP amplification bug
+which could be used for DRDoS attacks.
+
+https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=939119
 
     disable_service_cups_browsed:
 
@@ -119,17 +133,25 @@ It has four independently switchable functions:
 
 Various instructions advise using this to discover network printers.[1]
 It seems the main reason is an issue with GTK.  The issue is that GTK
-can discover network printers on its own, but then fails to actually
-print to them.[2][3]  Assuming this issue is solved, most systems
-should be able to run without cups-browsed.
+can discover network printers without cups-browsed, but then
+fails to actually print to them.[2][3]  Assuming this issue is solved,
+most systems would be able to run without cups-browsed.
 
 [1] https://wiki.debian.org/QuickPrintQueuesCUPS#IPP_Printers
 [2] https://wiki.debian.org/CUPSDriverlessPrinting#CUPS_2.2.4_and_the_GTK_Print_Dialog
 [3] https://wiki.debian.org/CUPSPrintQueues#Printing_and_GTK_Applications
 
-This is enabled with default settings in Ubuntu and Debian.
-On Fedora Workstation 26-30, this service is disabled by default.
-If you are not using it, you might want to disable it.
+This service is enabled in the default settings of Ubuntu and Debian.
+Fedora Linux disables this service by default.
+If you are not using it, you might want to disable this service as a whole.
+
+    disable_service_avahi_daemon:
+
+Avahi - multicast DNS - is allowed by a lot of distributions (and users).
+Ubuntu audited it for security at one point.  That said, if you have
+a server that is directly exposed to the internet, you should disable
+Avahi or use a firewall to block it.  Ubuntu Server does not install
+Avahi.
 
 
 ## License
