@@ -68,7 +68,7 @@
   check_mode: no
   changed_when: False
   failed_when: disable_unwanted_servers__exist.rc not in [0, 1]
-  with_items: "{{ [ 'rpcbind' ] if not disable_service_rpcbind else [] }}"
+  with_items: "{{ [ 'rpcbind' ] if disable_service_rpcbind == False else [] }}"
 
 - name: "Find wanted rpcbind.socket which already exists"
   set_fact:
