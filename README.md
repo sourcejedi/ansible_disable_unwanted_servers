@@ -9,7 +9,7 @@ by accident, when you install certain packages.
 I think a lot of users expect Ubuntu's
 "[No Open Ports][no-open-ports]" policy, and/or a firewall like Windows has.
 This expectation has not been upheld.  See the list of services below.
-Therefore, I suggest ALL of the following:
+Therefore, I suggest ALL of the following steps:
 
 1. Use this role, or run
    `systemctl mask minidlna minissdpd rpcbind nmbd gdomap`.
@@ -27,6 +27,12 @@ Therefore, I suggest ALL of the following:
 3. If possible, configure a firewall.
    For an example, and some aspects to consider, see the role
    [sourcejedi.firewalld][sourcejedi__firewalld].
+
+   Alternatively, [Oefenweb.ufw][Oefenweb__ufw] is a nice simple role.
+   UFW has built-in rules that allow DHCPv6, mDNS, and minissdpd.
+   The latter is bad.  Therefore, be sure that you disabled minissdpd
+   (step 1), and checked that it or an equivalent is not listening on
+   UDP port 1900 (step 4).
 
 4. Look for unwanted network services on your system.
 
